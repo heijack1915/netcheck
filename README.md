@@ -4,17 +4,45 @@
 
 NetCheck 是一款综合网络诊断工具，支持 DNS 查询、Ping 检测、TCP/UDP 端口探测、协议指纹识别、端口扫描、操作系统指纹识别以及 WAF 专项检测等功能。
 
+## 快速开始
+
+### Windows
+
+双击 `start_windows.bat` 即可，脚本会自动检测 Python 和 PyQt5，缺失则自动安装。
+
+### Mac / Linux
+
+```bash
+chmod +x start_mac_linux.sh
+./start_mac_linux.sh
+```
+
+### 打包为独立可执行文件（无需目标机器装 Python）
+
+在本机运行打包脚本：
+
+```bash
+chmod +x build.sh
+./build.sh
+```
+
+打包完成后在 `dist/` 目录下生成 `netcheck_v2.3` 可执行文件，复制到目标机器双击即可运行，零依赖。
+
+> Windows 打包请在 Windows 上执行，Linux/Mac 同理。
+
 ## 运行方式
 
 ### GUI 模式（推荐）
+
+通过上述一键启动脚本运行，或手动执行：
+
 ```bash
-cd netcheck/v2.3
 python3 netcheck_v2.3.py
 ```
 
 ### 命令行模式
+
 ```bash
-cd netcheck/v2.3
 python3 netcheck_v2.3.py -d <目标IP/域名>
 ```
 
