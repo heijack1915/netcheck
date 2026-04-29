@@ -1,157 +1,92 @@
-# NetCheck v2.3 使用说明
+# NetCheck
 
-## 简介
+综合网络诊断工具，支持 DNS 查询、Ping 检测、TCP/UDP 端口探测、协议指纹识别、端口扫描、操作系统指纹识别以及 WAF 专项检测。
 
-NetCheck 是一款综合网络诊断工具，支持 DNS 查询、Ping 检测、TCP/UDP 端口探测、协议指纹识别、端口扫描、操作系统指纹识别以及 WAF 专项检测等功能。
+## 下载
 
-## 快速开始
+前往 [Releases](https://github.com/heijack1915/netcheck/releases) 页面下载对应系统的压缩包：
 
-### Windows
+| 系统 | 下载文件 | 说明 |
+|------|----------|------|
+| **Windows** | `netcheck_v2.3_windows.zip` | 解压后双击 `start_windows.bat` 启动 |
+| **Mac / Linux** | `netcheck_v2.3_mac_linux.zip` | 解压后终端运行 `./start_mac_linux.sh` |
+| **源码** | `Source code (zip)` | 需要自行安装 Python 3.8+ 和 PyQt5 |
 
-双击 `start_windows.bat` 即可，脚本会自动检测 Python 和 PyQt5，缺失则自动安装。
+> 前提条件：需要安装 [Python 3.8+](https://www.python.org/downloads/)（Windows 安装时请勾选 "Add Python to PATH"）。首次启动脚本会自动安装 PyQt5 依赖。
 
-### Mac / Linux
+## 使用方法
 
+### 一键启动（推荐）
+
+**Windows：** 解压后双击 `start_windows.bat`
+
+**Mac / Linux：**
 ```bash
 chmod +x start_mac_linux.sh
 ./start_mac_linux.sh
 ```
 
-### 打包为独立可执行文件（无需目标机器装 Python）
+### 手动启动
 
-在本机运行打包脚本：
+```bash
+pip3 install PyQt5
+python3 netcheck_v2.3.py          # GUI 模式
+python3 netcheck_v2.3.py -d <IP>  # 命令行模式
+```
+
+### 打包为独立可执行文件（无需 Python）
 
 ```bash
 chmod +x build.sh
 ./build.sh
 ```
 
-打包完成后在 `dist/` 目录下生成 `netcheck_v2.3` 可执行文件，复制到目标机器双击即可运行，零依赖。
+打包后生成独立可执行文件，复制到任何机器双击即可运行。Windows 请在 Windows 上打包，Mac/Linux 同理。
 
-> Windows 打包请在 Windows 上执行，Linux/Mac 同理。
+## 功能
 
-## 运行方式
-
-### GUI 模式（推荐）
-
-通过上述一键启动脚本运行，或手动执行：
-
-```bash
-python3 netcheck_v2.3.py
-```
-
-### 命令行模式
-
-```bash
-python3 netcheck_v2.3.py -d <目标IP/域名>
-```
-
-## 功能模块
-
-### 1. 基础诊断
+### 基础诊断
 
 | 功能 | 说明 |
 |------|------|
-| **DNS 查询** | 查询域名的 A、AAAA、MX、NS 等记录 |
-| **Ping 检测** | ICMP ping 测试，支持自定义包数量和大小 |
-| **TCP/UDP 探测** | 检测目标端口的 TCP 和 UDP 连通性 |
+| DNS 查询 | 查询域名的 A、AAAA、MX、NS 等记录 |
+| Ping 检测 | ICMP ping 测试，支持自定义包数量和大小 |
+| TCP/UDP 探测 | 检测目标端口的 TCP 和 UDP 连通性 |
 
-### 2. 协议指纹识别
+### 协议指纹识别
 
-自动识别以下协议：
+自动识别 HTTP、HTTPS、SSH、FTP、SMTP、MySQL、Redis、MongoDB、PostgreSQL、MQTT 等 16 种协议。
 
-| 协议 | 指纹特征 |
-|------|----------|
-| HTTP | `HTTP/` 响应头 |
-| HTTPS/TLS | TLS 握手、证书信息 |
-| SSH | `SSH-` 版本标识 |
-| FTP | `220` 欢迎消息 |
-| SMTP | `220` + `ESMTP` |
-| MySQL | `GapId` 或握手包 |
-| Redis | `+OK` 响应 |
-| MQTT | Connect 报文特征 |
-| WebSocket | `Upgrade` 头 |
-| SMTP/SMTPS | 邮件服务标识 |
+### 端口扫描
 
-### 3. 端口扫描
+- 常用端口一键扫描（HTTP、SSH、MySQL、Redis 等 30+ 端口）
+- 支持自定义端口范围
+- 高并发扫描，速度较 v2.2 提升 50%
 
-- **常用端口**：HTTP、HTTPS、SSH、FTP、SMTP、POP3、MySQL、Redis 等
-- **自定义端口**：用户可指定端口范围（如 `80,443,8080-8090`）
-- **并发优化**：支持高并发扫描，速度较 v2.2 提升 50%
+### OS 指纹识别
 
-### 4. OS 指纹识别
+基于 TTL 值、SSH Banner、HTTP Server 头综合判断目标操作系统。
 
-基于 TTL 值和跳数分析目标主机操作系统：
-- Windows：TTL ≈ 128
-- Linux/Unix：TTL ≈ 64
-- 思科/网络设备：TTL ≈ 255
+### WAF 专项检测（v2.3 新增）
 
-### 5. WAF 专项检测（v2.3 新增）
+检测 WAF 透明代理配置问题，验证端口是否返回预期协议：
 
-专门检测 WAF 透明代理配置问题：
+| 默认端口 | 预期协议 | 说明 |
+|----------|----------|------|
+| 5677 | TCP | 期望直接转发 |
+| 5678 | HTTP | WAF 正常代理 |
+| 5679 | UDP | 期望直接转发 |
 
-#### 5.1 可编辑的端口配置
-
-WAF 端口和预期协议现在可以自由编辑：
-
-| 默认配置 | 说明 |
-|----------|------|
-| **5677** - TCP | TCP端口，期望直接转发 |
-| **5678** - HTTP | HTTP端口，WAF正常代理 |
-| **5679** - UDP | UDP端口，期望直接转发 |
-
-**操作说明：**
-- 点击端口号可直接修改
-- 点击协议下拉框可选择 `tcp`、`http` 或 `udp`
-- 点击 **"➕ 添加端口"** 可增加检测端口
-- 点击 **"➖ 删除最后一行"** 可移除端口（保留至少3行）
-
-#### 5.2 检测逻辑
-
-| 状态 | 说明 |
-|------|------|
-| ✅ 正常 | 端口返回预期协议 |
-| ⚠️ 异常 | 端口返回非预期协议（如 TCP 端口返回 HTTP） |
-| ❌ 不可达 | 端口无法连接 |
-
-#### 5.3 典型检测场景
-
-此功能用于检测 WAF 在透明代理模式下的配置错误：
-
-- **WAF 正常配置**：只代理 HTTP 流量（5678），非 Web 协议（5677 TCP、5679 UDP）应正常转发
-- **WAF 配置错误**：WAF 错误地代理了非 Web 端口，导致 TCP/UDP 端口返回 HTTP 响应
-
-#### 使用方法
-
-1. 在 **"WAF 端口配置"** 区域设置要检测的端口和预期协议
-2. 勾选 **"WAF专项检测"** 选项
-3. 输入目标 WAF 地址
-4. 点击 **"🚀 开始扫描"**
-5. 查看 **"🛡️ WAF检测"** 标签页的结果
-
-## 输出格式
-
-- **GUI 显示**：表格化结果，带颜色标识
-- **JSON 导出**：点击"导出结果"保存为 JSON 文件
-
-## 依赖
-
-- Python 3.8+
-- PyQt5
-
-安装依赖：
-```bash
-pip3 install PyQt5
-```
+端口和协议均可在界面中自由编辑。
 
 ## 快捷操作
 
-- **回车键**：在输入框中按回车可直接执行检测
-- **导出**：支持将检测结果导出为 JSON 文件
-- **清空**：点击"清空结果"可重置显示
+- **回车键**：输入框中按回车直接执行检测
+- **导出 JSON**：检测结果可导出为 JSON 文件
+- **WAF 端口配置**：支持添加/删除自定义检测端口
 
 ## 版本历史
 
-- **v2.1**：基础 CLI 版本，支持端口扫描和 OS 指纹
-- **v2.2**：添加 GUI 界面，支持多标签页操作
-- **v2.3**：优化扫描速度，添加 WAF 专项检测（5677/5678/5679）
+- **v2.3** — WAF 专项检测、一键启动脚本、扫描速度优化
+- **v2.2** — GUI 界面，多标签页操作
+- **v2.1** — 基础 CLI 版本，端口扫描和 OS 指纹
